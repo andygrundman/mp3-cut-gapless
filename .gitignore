@@ -1,0 +1,17 @@
+MP3-Cut-Gapless-*
+tmp
+*.o
+Gapless.bs
+Gapless.c
+Makefile
+blib
+pm_to_blib
+
+# avoid temp and backup files
+*~
+*#
+*.bak
+*.old
+*.rej
+*.swp
+*.tmp
