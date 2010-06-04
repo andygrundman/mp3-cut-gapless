@@ -67,7 +67,7 @@ _get_frame_file_offset(mp3cut *mp3c, uint32_t frame_index)
     f = mp3c->cache_frame + 1;
     offset = mp3c->cache_offset;
     i = mp3c->cache_i;
-    DEBUG_TRACE("Using cached frame %d offset %d i %d\n", mp3c->cache_frame, offset, i);
+    //DEBUG_TRACE("Using cached frame %d offset %d i %d\n", mp3c->cache_frame, offset, i);
   }
     
   // frame_index of 0 will be 0 (start of file)
