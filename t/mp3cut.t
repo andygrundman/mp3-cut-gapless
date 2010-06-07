@@ -1,8 +1,9 @@
 use strict;
 
+use File::Path ();
 use File::Spec::Functions;
 use FindBin ();
-use Test::More tests => 22;
+use Test::More tests => 25;
 
 use MP3::Cut::Gapless;
 
@@ -10,6 +11,12 @@ use MP3::Cut::Gapless;
 # silence frame
 # silence frame with MPEG CRC
 # preframe with mdss < 511
+
+my $tmpdir = catdir( $FindBin::Bin, 'tmp' );
+if ( -d $tmpdir ) {
+    File::Path::rmtree($tmpdir);
+}
+mkdir $tmpdir;
 
 # 128k/44.1 LAME CBR
 _test_read(
@@ -120,6 +127,40 @@ _test_read(
         [ 1000, 2000 ],
     ],
 );
+
+# Test cache file creation
+{
+    my $c = MP3::Cut::Gapless->new(
+        file      => _f('cbr-128-lame.mp3'),
+        start_ms  => 0,
+        end_ms    => 1000,
+        cache_dir => catdir( $tmpdir, 'cache' ),
+    );
+    
+    ok( -e $c->{cache_file}, 'cache file exists ok' );
+    is( _compare( _load( $c->{cache_file} ), 'cbr-128-lame.mllt' ), 1, 'cache file ok' );
+}
+
+# Test splitting using the cache file
+{
+    my $c = MP3::Cut::Gapless->new(
+        file      => _f('cbr-128-lame.mp3'),
+        start_ms  => 0,
+        end_ms    => 1000,
+        cache_dir => catdir( $tmpdir, 'cache' ),
+    );
+    
+    my $out;
+    while ( $c->read( my $buf, 4096 ) ) {
+        $out .= $buf;
+    }
+    
+    is( _compare(\$out, 'cbr-128-lame.mp3_0-1000'), 1, 'split using cache file ok' );
+}
+
+END {
+    File::Path::rmtree($tmpdir);
+}
 
 sub _test_read {
     my %args = @_;

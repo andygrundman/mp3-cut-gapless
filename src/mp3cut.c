@@ -815,7 +815,7 @@ _mp3cut_mllt_load(mp3cut *mp3c, const char *file)
 {
   PerlIO *cache = PerlIO_open(file, "r");
   if (cache == NULL) {
-    warn("Unable to open cache file %s for reading: %s\n", file, strerror(errno));
+    //warn("Unable to open cache file %s for reading: %s\n", file, strerror(errno));
   }
   else {
     int read;
