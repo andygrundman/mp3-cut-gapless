@@ -32,6 +32,6 @@
 \.gz$
 
 # Dev stuff
-TODO
-t/mp3/source.mp3
-t/mp3/ext
+test.pl
+testcue.pl
+cache
