@@ -78,6 +78,7 @@ sub _load {
     my $path = shift;
     
     open my $fh, '<', $path or die "Cannot open $path";
+    binmode $fh;
     my $data = do { local $/; <$fh> };
     close $fh;
     
