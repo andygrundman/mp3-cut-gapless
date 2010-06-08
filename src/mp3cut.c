@@ -16,21 +16,21 @@
 
 #include "mp3cut.h"
 
-static inline uint16_t
+static uint16_t
 _crc16(uint16_t crc, uint8_t value)
 {
-  uint16_t tmp = crc ^ value;
+  uint32_t tmp = crc ^ value;
   crc = (crc >> 8) ^ CRC16_TABLE[tmp & 0xFF];
   return crc;
 }
 
-static inline uint8_t
+static uint32_t
 _get_side_info_start(mp3frame *frame)
 {
   return frame->crc16_used ? 6 : 4;
 }
 
-static inline uint8_t
+static uint32_t
 _get_side_info_size(mp3frame *frame)
 {
   if (frame->mpegID == MPEG1_ID) {
@@ -41,7 +41,7 @@ _get_side_info_size(mp3frame *frame)
   }
 }
 
-static inline uint8_t
+static uint32_t
 _get_side_info_end(mp3frame *frame)
 {
   return _get_side_info_start(frame) + _get_side_info_size(frame);
@@ -151,13 +151,13 @@ _set_curr_frame(mp3cut *mp3c, uint32_t frame_index)
   mp3c->offset = frame_offset;
 }
 
-static inline uint16_t
+static uint16_t
 _get_frame_size(mp3cut *mp3c)
 {
   return mp3c->curr_frame->frame_size;
 }
 
-static inline uint16_t
+static uint16_t
 _get_bit_res_ptr(mp3cut *mp3c)
 {
   unsigned char *bptr = buffer_ptr(mp3c->buf);
@@ -170,7 +170,7 @@ _get_bit_res_ptr(mp3cut *mp3c)
   return br_pointer;
 }
 
-static inline uint16_t
+static uint16_t
 _get_main_data_size(mp3cut *mp3c)
 {
   return mp3c->curr_frame->frame_size 
@@ -183,11 +183,11 @@ _mp3cut_init(HV *self, mp3cut *mp3c)
 {
   PerlIO *fh = IoIFP(sv_2io(*(my_hv_fetch(self, "_fh"))));
   mp3frame *frame;
-  bool first_frame_found = false;
+  bool first_frame_found = FALSE;
   int firstkbps = 0;
   int frame_counter = 0;
   unsigned char *bptr;
-  bool check_bitrate = true;
+  bool check_bitrate = TRUE;
   
   Newz(0, frame, sizeof(mp3frame), mp3frame);
   
@@ -200,7 +200,7 @@ _mp3cut_init(HV *self, mp3cut *mp3c)
   mp3c->samples_per_frame    = 0;
   mp3c->enc_delay            = 576;
   mp3c->enc_padding          = 576 * 3;
-  mp3c->is_vbr               = false;
+  mp3c->is_vbr               = FALSE;
   mp3c->start_sample         = UNKNOWN_START_SAMPLE;
   mp3c->file_size            = _file_size(fh);
   mp3c->next_processed_frame = 0;
@@ -233,7 +233,7 @@ _mp3cut_init(HV *self, mp3cut *mp3c)
       _mp3cut_mllt_mark_frame(mp3c, frame->frame_size);
     
     if (!first_frame_found) {
-      first_frame_found = true;
+      first_frame_found = TRUE;
       firstkbps = frame->bitrate_kbps;
       mp3c->samples_per_frame = frame->samples_per_frame;
       mp3c->max_res = frame->mpegID == MPEG1_ID ? 511 : 255;
@@ -246,7 +246,7 @@ _mp3cut_init(HV *self, mp3cut *mp3c)
       if ( _mp3cut_parse_xing(mp3c) ) {
         if (mp3c->xilt_frame->xing_tag) {
           DEBUG_TRACE("File has Xing tag, is VBR\n");
-          mp3c->is_vbr = true;
+          mp3c->is_vbr = TRUE;
         }
         frame_counter--;
         if (mp3c->xilt_frame->lame_tag) {
@@ -257,9 +257,10 @@ _mp3cut_init(HV *self, mp3cut *mp3c)
     }
     else {
       if (frame_counter == 0) {
-        check_bitrate = false;
         int sie;
         bool pcut_frame;
+        
+        check_bitrate = FALSE;
         
         // first music frame, might be a PCUT-tag
         // reservoir-filler frame
@@ -286,7 +287,7 @@ _mp3cut_init(HV *self, mp3cut *mp3c)
           int o, e;
           for (o = _get_side_info_start(frame), e = _get_side_info_end(frame); o < e; o++) {
             if (bptr[o] != 0) {
-              check_bitrate = true;
+              check_bitrate = TRUE;
               break;
             }
           }
@@ -295,8 +296,8 @@ _mp3cut_init(HV *self, mp3cut *mp3c)
       // we don't want the first "music frame" to be checked if it's possibly a PCUT generated reservoir frame
       if (check_bitrate && frame->bitrate_kbps != firstkbps) {
         DEBUG_TRACE("Bitrate changed, file is VBR\n");
-        mp3c->is_vbr = true;
-        check_bitrate = false;
+        mp3c->is_vbr = TRUE;
+        check_bitrate = FALSE;
       }
     }
     
@@ -339,7 +340,7 @@ _mp3cut_init(HV *self, mp3cut *mp3c)
   return 1;
 }
 
-static inline void
+static void
 _mp3cut_setup_filter(int filter, int *masker, int *masked)
 {
   *masker = 0xFFE00000;
@@ -470,7 +471,7 @@ _mp3cut_get_next_frame(mp3cut *mp3c, mp3frame *frame)
       
       if ((header32 & masker) == masked) {
         // header
-        //DEBUG_TRACE("header @ %d: %x\n", i, header32);
+        DEBUG_TRACE("header @ %d: %x\n", i, header32);
         
         if ( _mp3cut_decode_frame(header32, frame) ) {
           // valid frame, skip to it in the buffer
@@ -572,7 +573,7 @@ _mp3cut_parse_xing(mp3cut *mp3c)
   
   mp3c->xilt_frame->xing_tag    = (data[ofs] == 'X' && data[ofs+1] == 'i' && data[ofs+2] == 'n' && data[ofs+3] == 'g');
   mp3c->xilt_frame->info_tag    = (data[ofs] == 'I' && data[ofs+1] == 'n' && data[ofs+2] == 'f' && data[ofs+3] == 'o');
-  mp3c->xilt_frame->lame_tag    = false;
+  mp3c->xilt_frame->lame_tag    = FALSE;
   mp3c->xilt_frame->frame_count = 0;
   
 #ifdef AUDIO_SCAN_DEBUG
@@ -627,7 +628,7 @@ _mp3cut_parse_xing(mp3cut *mp3c)
   
   // Verify CRC16
   if (((((data[tag_end_ofs - 2] << 8) | (data[tag_end_ofs - 1] & 0xFF)) ^ crc) & 0xFFFF) != 0) {
-    mp3c->xilt_frame->lame_tag = false;
+    mp3c->xilt_frame->lame_tag = FALSE;
   }
   
   if (mp3c->xilt_frame->lame_tag) {
@@ -1054,20 +1055,20 @@ _mp3cut_read(HV *self, mp3cut *mp3c, SV *buf, int buf_size)
           
           if (mdss >= 511) {
             DEBUG_TRACE("    mdss %d, copying 511 bytes at offset %d\n", mdss, fl - 511);
-            Copy(buffer_ptr(mp3c->buf) + fl - 511, buffer_ptr(&res), 511, uint8_t);
+            Copy((char *)buffer_ptr(mp3c->buf) + fl - 511, (char *)buffer_ptr(&res), 511, uint8_t);
           }
           else { // XXX need test
             int move = 511 - mdss;
             DEBUG_TRACE("    mdss %d, moving %d bytes\n", mdss, move);
             
-            Move(buffer_ptr(&res) + 511 - move, buffer_ptr(&res), move, uint8_t);
-            Copy(buffer_ptr(mp3c->buf) + fl - mdss, buffer_ptr(&res) + move, mdss, uint8_t);
+            Move((char *)buffer_ptr(&res) + 511 - move, (char *)buffer_ptr(&res), move, uint8_t);
+            Copy((char *)buffer_ptr(mp3c->buf) + fl - mdss, (char *)buffer_ptr(&res) + move, mdss, uint8_t);
           }
         }
         
         Copy(
-          buffer_ptr(&res) + 511 - need_bytes_from_res,
-          buffer_ptr(&res_frame) + buffer_len(&res_frame) - need_bytes_from_res,
+          (char *)buffer_ptr(&res) + 511 - need_bytes_from_res,
+          (char *)buffer_ptr(&res_frame) + buffer_len(&res_frame) - need_bytes_from_res,
           need_bytes_from_res,
           uint8_t
         );
@@ -1225,7 +1226,7 @@ _mp3cut_construct_xing_frame(mp3cut *mp3c, Buffer *xing_frame, uint32_t frame_co
   tag_offset += 4;
   
   if (mp3c->xilt_frame->lame_tag) {
-    Copy(buffer_ptr(mp3c->xilt_frame->tag) + mp3c->xilt_frame->lame_tag_offset, &dest[tag_offset - 4], 40, uint8_t);
+    Copy((char *)buffer_ptr(mp3c->xilt_frame->tag) + mp3c->xilt_frame->lame_tag_offset, &dest[tag_offset - 4], 40, uint8_t);
     tag_offset += 4;
     // delete LAME's replaygain tag
     for (i = 0; i < 8; i++)

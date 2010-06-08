@@ -291,7 +291,7 @@ buffer_dump(Buffer *buffer, uint32_t size)
     strncat(hexstr, bytestr, sizeof(hexstr)-strlen(hexstr)-1);
 
     /* store char str (for right side) */
-    if (isalnum(c) == 0) {
+    if (c < 21 || c > 0x7E) {
       c = '.';
     }
     snprintf(bytestr, sizeof(bytestr), "%c", c);

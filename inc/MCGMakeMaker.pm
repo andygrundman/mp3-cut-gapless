@@ -7,8 +7,11 @@ override _build_WriteMakefile_args => sub {
     my ($self) = @_;
 
     my @INC;
-    my $DEFINES = '-Wall' unless $^O =~ /sun|solaris/i;
-    $DEFINES .= ' -Wno-unused-value -Wno-format-security' unless $^O =~ /Win32|sun|solaris/i;
+    
+    # XXX this code is not executed by the end system, not sure how to fix right now
+    my $DEFINES = '';
+    #my $DEFINES = '-Wall' unless $^O =~ /sun|solaris/i;
+    #$DEFINES .= ' -Wno-unused-value -Wno-format-security' unless $^O =~ /Win32|sun|solaris/i;
 
     unshift @INC, '-I. -I.. -Isrc -Iinclude';
 

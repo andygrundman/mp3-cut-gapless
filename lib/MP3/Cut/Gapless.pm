@@ -2,7 +2,7 @@ package MP3::Cut::Gapless;
 
 use strict;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 require XSLoader;
 XSLoader::load('MP3::Cut::Gapless', $VERSION);
@@ -91,6 +91,8 @@ sub _init {
     my $self = shift;
     
     open $self->{_fh}, '<', $self->{file} || die "Unable to open $self->{file} for reading";
+    
+    binmode $self->{_fh};
     
     # XS init
     $self->{_mp3c} = $self->__init(@_);

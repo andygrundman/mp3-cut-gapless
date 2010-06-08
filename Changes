@@ -1,5 +1,8 @@
 Revision history for MP3::Cut::Gapless
 
 {{$NEXT}}
+        - Win32 fixes.
+
+0.01      2010-06-07 16:55:56
         - Initial release.
 
