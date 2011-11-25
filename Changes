@@ -1,6 +1,9 @@
 Revision history for MP3::Cut::Gapless
 
-{{$NEXT}}
+0.03
+        - Bug 17441, croak if trying to process a non-MP3 file.
+
+0.02      2010-06-08 16:33:47
         - Win32 fixes.
 
 0.01      2010-06-07 16:55:56
