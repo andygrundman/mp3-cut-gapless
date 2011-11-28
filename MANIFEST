@@ -26,6 +26,7 @@ t/mp3/cbr-128-lame-crc.mp3
 t/mp3/cbr-128-lame-invalid-crc.mp3
 t/mp3/cbr-128-lame-pcut.mp3
 t/mp3/cbr-128-lame.mp3
+t/mp3/cbr-320-bug17348.mp3
 t/mp3/cbr-80-11025hz-MPEG25-lame.mp3
 t/mp3/cbr-96-22050hz-MPEG2-lame.mp3
 t/mp3/test.cue
@@ -47,6 +48,8 @@ t/ref/cbr-128-lame-pcut.mp3_1000-2000
 t/ref/cbr-128-lame.mllt
 t/ref/cbr-128-lame.mp3_0-1000
 t/ref/cbr-128-lame.mp3_1000-2000
+t/ref/cbr-320-bug17348.mp3_0-1000
+t/ref/cbr-320-bug17348.mp3_1000-2000
 t/ref/cbr-80-11025hz-MPEG25-lame.mp3_0-1000
 t/ref/cbr-80-11025hz-MPEG25-lame.mp3_1000-2000
 t/ref/cbr-96-22050hz-MPEG2-lame.mp3_0-1000

@@ -96,7 +96,7 @@ typedef struct mp3cut {
   Buffer *buf;
   int filter;
   uint32_t offset;
-  uint32_t audio_offset;
+  int32_t first_frame_offset; // offset to first MP3 frame (after ID3v2, other junk data)
   uint32_t music_frame_count;
   uint16_t max_res;
   uint16_t samples_per_frame;

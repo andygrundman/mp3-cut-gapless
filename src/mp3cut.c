@@ -50,7 +50,7 @@ _get_side_info_end(mp3frame *frame)
 static uint32_t
 _get_frame_file_offset(mp3cut *mp3c, uint32_t frame_index)
 {
-  uint32_t offset = 0;
+  uint32_t offset = mp3c->first_frame_offset;
   unsigned char *bptr = buffer_ptr(mp3c->mllt_buf);
   uint32_t max_frame_size = get_u24(&bptr[2]);
   uint32_t bits_for_bytes = bptr[8];
@@ -105,9 +105,6 @@ _get_frame_file_offset(mp3cut *mp3c, uint32_t frame_index)
   mp3c->cache_frame = frame_index;
   mp3c->cache_offset = offset;
   mp3c->cache_i = i;
-  
-  // Add audio offset if any (ID3v2 tag)
-  offset += mp3c->audio_offset;
   
   DEBUG_TRACE("MLLT offset(%d) = %d\n", frame_index, offset);
   
@@ -194,7 +191,7 @@ _mp3cut_init(HV *self, mp3cut *mp3c)
   mp3c->fh                   = fh;
   mp3c->filter               = 0; // Bug 17441, used to be FILTER_LAYER3 but we need to detect non-MP3 files and abort
   mp3c->offset               = 0;
-  mp3c->audio_offset         = 0;
+  mp3c->first_frame_offset   = -1;
   mp3c->music_frame_count    = 0;
   mp3c->max_res              = 0;
   mp3c->samples_per_frame    = 0;
@@ -480,8 +477,13 @@ _mp3cut_get_next_frame(mp3cut *mp3c, mp3frame *frame)
           
           // valid frame, skip to it in the buffer
           buffer_consume(mp3c->buf, i);
+          mp3c->offset += i;
           
-          DEBUG_TRACE("Frame @ %d: %dkbps %dkHz size %d\n", mp3c->offset + i, frame->bitrate_kbps, frame->samplerate, frame->frame_size);
+          // Remember the first frame's offset
+          if (mp3c->first_frame_offset == -1)
+            mp3c->first_frame_offset = mp3c->offset;
+          
+          DEBUG_TRACE("Frame @ %d: %dkbps %dkHz size %d\n", mp3c->offset, frame->bitrate_kbps, frame->samplerate, frame->frame_size);
           
           ret = 1;
           goto out;
@@ -870,8 +872,6 @@ _mp3cut_skip_id3v2(mp3cut *mp3c)
     }
     
     DEBUG_TRACE("Skipping ID3v2 tag, size %d\n", id3_size);
-    
-    mp3c->audio_offset = id3_size;
     
     _mp3cut_skip(mp3c, id3_size);
     

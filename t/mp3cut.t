@@ -3,7 +3,7 @@ use strict;
 use File::Path ();
 use File::Spec::Functions;
 use FindBin ();
-use Test::More tests => 26;
+use Test::More tests => 28;
 
 use MP3::Cut::Gapless;
 
@@ -173,6 +173,18 @@ _test_read(
     
     like( $@, qr/Cannot gaplessly process file/, 'mp2 file aborted correctly' );
 }
+
+# Bug 17348, test file with extra data between ID3 tag and first MP3 frame
+{
+    _test_read(
+        file   => 'cbr-320-bug17348.mp3',
+        name   => '320k/44.1kHz bug 17348 offset bug',
+        splits => [
+            [ 0, 1000 ],
+            [ 1000, 2000 ],
+        ],
+    );
+}    
 
 END {
     File::Path::rmtree($tmpdir);
